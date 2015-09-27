@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <style>
+        .tnav .navbar .container { height: 15px; }
+        duration-statistics {
+            font: 10px sans-serif;
+        }
+
+		.axis text {
+			font: 10px sans-serif;
+		}
+
+		.axis path,
+		.axis line {
+			fill: none;
+			stroke: #000;
+			shape-rendering: crispEdges;
+		}
+
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 210px;
+            height: 78px;
+            padding: 2px;
+            font: 12px sans-serif;
+            background: #000000;
+            border: 0px;
+            border-radius: 8px;
+            color: #ffffff  ;
+        }
+
+        svg.map {
+            background: lightcyan;
+        }
+
+        .label {
+            font: 4px sans-serif;
+        }
+		
+		.brush .extent {
+			stroke: #fff;
+			fill: #999;
+			fill-opacity: .125;
+			shape-rendering: crispEdges;
+		}
+		
+		.resize path {
+			fill: #008;
+			fill-opacity: .8;
+			stroke: #008;
+			stroke-width: 1.5px;
+		}
+		
+		.row.no-gutters {
+			margin-right: 0;
+			margin-left: 0;
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+		.row.no-gutters > [class^="col-"],
+		.row.no-gutters > [class*=" col-"] {
+			padding-right: 0;
+			padding-left: 0;
+			padding-top: 3px;
+			padding-bottom: 3px;
+		}
+	</style>
+
+    <link rel="stylesheet" href="css/jquery-ui.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <script type="text/javascript" src="js/lib/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/lib/jquery-ui.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/d3.parcoords.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <title>Flight Data Analytics</title>
+
+</head>
+
+<body ng-app="FDAApp" ng-controller="formController">
+
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-inner">
+
+	<!--
+			<div class="container" align="center">
+	-->
+
+				<h2 style="color:white">  - Flight Data Analysis - </h2>
+				<!--<a class="brand" href="#">EADS</a>-->
+				<!--<img src="css/images/Logo_Airbus.JPG" height="60" width="122">-->
+
+	<!--        </div>-->
+
+			<!--/.nav-collapse -->
+
+		</div>
+	</div>
+
+	<br/><br/><br/>
+
+    <div class="container-fluid" align="center">
+		<!--
+			div for search and reset button
+		-->
+		<div class="row no-gutters">
+			<div class="col-md-12">
+				<div class="form-horizontal">
+					<form ng-submit="fetchData(false)">
+						<input type="text" class="form-control" value="enter search parameters" ng-model="searchString" ng-init="searchString='enter aircraft type search parameters'" ng-click="onClick()" >
+						</br>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<!--
+			div for parallel coordinates
+		-->
+		<div class="row no-gutters">
+			<div class="col-md-10" align="left">
+				<aircraft-coordinates data="aircraftsData" ng-init="aircraftsData={data:null}"></aircraft-coordinates>
+			</div>
+			<div class="col-md-2">
+				<div class="row no-gutters">
+					<div class="col-md-6">
+						<div id="resetAircraftFilters">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div id="resetAircraftParams">
+						</div>
+					</div>
+				</div>
+				<div class="row no-gutters">
+					<div class="col-md-12">
+						<div id="aircraftParams">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!--
+			div for contain duration statistics (bar) and aircraft statistics (pie)
+		-->
+        <div class="row no-gutters">
+            <div class="col-md-8">
+				<duration-statistics data="durationStatsData" ng-init="durationStatsData={data:null}"> </duration-statistics>
+            </div>
+            <div class="col-md-4">
+				<aircraft-statistics data="aircraftStatsData" ng-init="aircraftStatsData={data:null}"></aircraft-statistics>
+            </div>
+        </div>
+
+		<!--
+			div for delay statistics
+		-->
+        <div class="row no-gutters">
+			<div class="col-md-12">
+				<delay-statistics data="delayStatsData" ng-init="delayStatsData={data:null}"></delay-statistics>
+			</div>
+        </div>
+    </div>
+
+    <!--hidden text box to support brush values for duration stats UI-->
+	<input type="text" ng-model="durationString" ng-init="durationString='0-17'" style="display: none;">
+
+</body>
+
+<script type="text/javascript" src="js/lib/d3.min.js"></script>
+<script type="text/javascript" src="js/lib/topojson.v0.min.js"></script>
+<script type="text/javascript" src="js/lib/angular.min.js"></script>
+<script type="text/javascript" src="js/lib/d3.svg.multibrush.js"></script>
+<script type="text/javascript" src="js/lib/d3.parcoords.js"></script>
+
+<script type="text/javascript" src="js/controller/app-controller.js"></script>
+<script type="text/javascript" src="js/directive/duration-statistics-directive.js"></script>
+<script type="text/javascript" src="js/directive/aircraft-statistics-directive.js"></script>
+<script type="text/javascript" src="js/directive/delay-statistics-directive.js"></script>
+<script type="text/javascript" src="js/directive/aircraft-pcoordinates-directive.js"></script>
+
+<script>
+
+    // Function to figure out dataSource selection based on entry in app-config.json
+    // The below code uses jquery methods (getJSON, getScript ..)
+
+    $(function() {
+
+        $.getJSON( "js/data/app-config.json", function( data ) {
+            $.each( data, function( key, val ) {
+                if(key=="dataSource") {
+                    if(val=="splunk")
+                        $.getScript("js/factory/controller-splunk.js", bootstrapAngular);
+                    else if(val=="elastic")
+                        $.getScript("js/factory/controller-elastic.js", bootstrapAngular);
+                    else
+                        alert("Wrong Selection in app-config.js");
+                }
+            });
+        });
+    });
+
+    function bootstrapAngular(){
+        angular.bootstrap(document, ["FDAApp"]);
+    }
+
+</script>
+
+</html>

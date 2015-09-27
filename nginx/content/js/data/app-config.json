@@ -1,0 +1,9 @@
+{
+  "dataSource" : "elastic",
+
+  "SplunkHost" : "<name of the host>",
+  "username" : "<username>",
+  "password" : "<password",
+
+  "ElasticHost" : "elasticsearch"
+}

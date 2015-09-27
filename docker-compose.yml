@@ -1,0 +1,21 @@
+elasticsearch:
+  build: elasticsearch/
+  ports:
+    - "9200:9200"
+  volumes:
+    - ./elasticsearch/config/elasticsearch.yml:/usr/share/ealsticsearch/config/elasticsearch.yml
+    - ./elasticsearch/data:/usr/share/elasticsearch/data
+logstash:
+  build: logstash/
+  volumes:
+    - ./logstash/conf.d:/etc/logstash/conf.d:ro
+  ports:
+    - "5000:5000"
+  links:
+    - elasticsearch
+nginx:
+  build: nginx/
+  ports:
+    - "80:80"
+  links:
+    - elasticsearch
