@@ -1,11 +1,1 @@
-
-
 ** A webapp for flight data analysis **
-
-Before deploying, please copy the js/data/app-config.json.template file to js/data/app-config.json, and edit the
-information to include right host that runs elasticsearch
-
-
-** For more information, please contact balachandar.amarnath@airbus.com
-
-** Please note that this readme file will be evolved whenever needed
